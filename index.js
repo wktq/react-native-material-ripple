@@ -16,7 +16,7 @@ export default class Ripple extends PureComponent {
     rippleSequential: false,
     rippleFades: true,
     disabled: false,
-    displayUntilPressOut: false,
+    displayUntilPressOut: true,
 
     onRippleAnimation: (animation, callback) => animation.start(callback),
   };
@@ -140,7 +140,6 @@ export default class Ripple extends PureComponent {
 
   signalAnimationEnd() {
     if (this.animationWaitingForEnd) {
-      console.log('forcing animation end');
       this.forceAnimationEnd();
     }
   }

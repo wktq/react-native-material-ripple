@@ -16,6 +16,7 @@ export default class Ripple extends PureComponent {
     rippleSequential: false,
     rippleFades: true,
     disabled: false,
+    displayUntilPressOut: false,
 
     onRippleAnimation: (animation, callback) => animation.start(callback),
   };
@@ -33,9 +34,11 @@ export default class Ripple extends PureComponent {
     rippleSequential: PropTypes.bool,
     rippleFades: PropTypes.bool,
     disabled: PropTypes.bool,
+    displayUntilPressOut: PropTypes.bool,
 
     onRippleAnimation: PropTypes.func,
   };
+
 
   constructor(props) {
     super(props);
@@ -51,6 +54,10 @@ export default class Ripple extends PureComponent {
 
     this.unique = 0;
     this.mounted = false;
+
+    this.rippleFades = this.props.rippleFades && !this.props.displayUntilPressOut;
+    this.isPressingIn = false;
+    this.animationWaitingForEnd = false;
 
     this.state = {
       width: 0,
@@ -80,14 +87,10 @@ export default class Ripple extends PureComponent {
 
   onPress(event) {
     let { ripples } = this.state;
-    let { onPress, rippleSequential } = this.props;
+    let { onPress } = this.props;
 
-    if (!rippleSequential || !ripples.length) {
-      if ('function' === typeof onPress) {
-        requestAnimationFrame(() => onPress(event));
-      }
-
-      this.startRipple(event);
+    if ('function' === typeof onPress) {
+      requestAnimationFrame(() => onPress(event));
     }
   }
 
@@ -102,10 +105,16 @@ export default class Ripple extends PureComponent {
   }
 
   onPressIn(event) {
-    let { onPressIn } = this.props;
+    let { onPressIn, rippleSequential } = this.props;
 
-    if ('function' === typeof onPressIn) {
-      onPressIn(event);
+    this.isPressingIn = true;
+
+    if (!rippleSequential || !ripples.length) {
+      if ('function' === typeof onPressIn) {
+        onPressIn(event);
+      }
+
+      this.startRipple(event);
     }
   }
 
@@ -115,12 +124,33 @@ export default class Ripple extends PureComponent {
     if ('function' === typeof onPressOut) {
       onPressOut(event);
     }
+
+    this.signalAnimationEnd();
+    this.isPressingIn = false;
   }
 
   onAnimationEnd() {
+    if (this.props.displayUntilPressOut && this.isPressingIn) {
+      this.animationWaitingForEnd = true;
+      return;
+    }
+
+    this.forceAnimationEnd();
+  }
+
+  signalAnimationEnd() {
+    if (this.animationWaitingForEnd) {
+      console.log('forcing animation end');
+      this.forceAnimationEnd();
+    }
+  }
+
+  forceAnimationEnd() {
     if (this.mounted) {
       this.setState(({ ripples }) => ({ ripples: ripples.slice(1) }));
     }
+
+    this.animationWaitingForEnd = false;
   }
 
   startRipple(event) {
@@ -168,7 +198,7 @@ export default class Ripple extends PureComponent {
   }
 
   renderRipple({ unique, progress, locationX, locationY, R }) {
-    let { rippleColor, rippleOpacity, rippleFades } = this.props;
+    let { rippleColor, rippleOpacity } = this.props;
 
     let rippleStyle = {
       top: locationY - radius,
@@ -182,7 +212,7 @@ export default class Ripple extends PureComponent {
         }),
       }],
 
-      opacity: rippleFades?
+      opacity: this.rippleFades ?
         progress.interpolate({
           inputRange: [0, 1],
           outputRange: [rippleOpacity, 0],

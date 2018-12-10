@@ -16,7 +16,11 @@ export default class Ripple extends PureComponent {
     rippleSequential: false,
     rippleFades: true,
     disabled: false,
+<<<<<<< HEAD
     displayUntilPressOut: true,
+=======
+    displayUntilPressOut: false,
+>>>>>>> 12e8f8d... add support for long press
 
     onRippleAnimation: (animation, callback) => animation.start(callback),
   };
@@ -140,6 +144,10 @@ export default class Ripple extends PureComponent {
 
   signalAnimationEnd() {
     if (this.animationWaitingForEnd) {
+<<<<<<< HEAD
+=======
+      console.log('forcing animation end');
+>>>>>>> 12e8f8d... add support for long press
       this.forceAnimationEnd();
     }
   }

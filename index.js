@@ -101,7 +101,7 @@ export default class Ripple extends PureComponent {
       requestAnimationFrame(() => onLongPress(event));
     }
 
-    this.startRipple(event);
+    // this.startRipple(event);
   }
 
   onPressIn(event) {
